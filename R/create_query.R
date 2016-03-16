@@ -4,11 +4,16 @@ snl_template_input <- function(outfile){
     FILE.EXCEL <- system.file('./templates/snl_query_builder.xlsx',
                               package = 'snlutils')
     
-    command <- sprintf('cp "%s" "%s"',
-                       FILE.EXCEL,
-                       outfile)
-    system(command)
-    message(command)
+    ## command <- sprintf('cp "%s" "%s"',
+    ##                    FILE.EXCEL,
+    ##                    outfile)
+
+    file.copy(FILE.EXCEL,
+              outfile,
+              overwrite = TRUE)
+    
+    ## system(command)
+    ## message(command)
     message("Done!")
     return(NULL %>>% invisible)
 }
@@ -24,12 +29,16 @@ snl_template_input <- function(outfile){
 
 #' @export
 snl_template_create <- function(infile,outfile){
-    command <- sprintf('cp "%s" "%s"',
-                       infile,
-                       outfile)
-    system(command)
+    ## command <- sprintf('cp "%s" "%s"',
+    ##                    infile,
+    ##                    outfile)
+    ## system(command)
+    file.copy(
+        infile,
+        outfile,
+        overwrite = TRUE
+    )
 
-    
     read_excel(infile, sheet = "SNLID") %>>%
         data.table %>>%
         select(SNLID) ->
