@@ -5,6 +5,7 @@ Authors@R: as.person(c("Janko Cizel <jcizel@gmail.com> [aut, cre]"))
 Description: What the package does (one paragraph).
 Depends:
     R (>= 3.2.2),
+    data.table
 Imports:
     data.table,
     pipeR,
