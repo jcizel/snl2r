@@ -1,0 +1,18 @@
+Package: snlutils
+Title: What the Package Does (one line, title case)
+Version: 0.0.0.9000
+Authors@R: as.person(c("Janko Cizel <jcizel@gmail.com> [aut, cre]"))
+Description: What the package does (one paragraph).
+Depends:
+    R (>= 3.2.2),
+Imports:
+    data.table,
+    pipeR,
+    rlist,
+    dplyr,
+    readxl,
+    xlsx,
+    zoo
+License: MIT + file LICENSE
+LazyData: true
+RoxygenNote: 5.0.1
