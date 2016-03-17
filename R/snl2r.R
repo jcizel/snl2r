@@ -1,5 +1,6 @@
 #' @export
-snl2r <- function(infile){
+snl2r <- function(infile,
+                  determine.type = FALSE){
     read_excel(infile, sheet = "template", col_names = FALSE ) %>>%
         data.table ->
         data
@@ -69,22 +70,71 @@ snl2r <- function(infile){
     ## Long dataset
     data_long <- out3
 
-    ## Long -> Wide
-    data_long %>>%
-        subset(
-        (drop == FALSE)    
-        ) %>>%
-        select(
-            concept_id,
-            snlid,
-            date = date_td,
-            value
-        ) %>>%
-        dcast.data.table(
-            snlid + date ~ concept_id,
-            value.var = 'value'            
-        ) ->
-        data_wide
+    if (determine.type == TRUE){
+        determineType(infile) -> t
+        data_long[concept_id %in% t[type=='string'][['concept_id']]] %>>%
+            mutate(value = value %>>% as.character) ->
+            data_long_char
+        data_long[concept_id %in% t[type=='numeric'][['concept_id']]] %>>%
+            mutate(value = value %>>% as.numeric) ->
+            data_long_num
+
+        data_long_char %>>%
+            subset(
+            (drop == FALSE)    
+            ) %>>%
+            select(
+                concept_id,
+                snlid,
+                date = date_td,
+                value
+            ) %>>%
+            dcast.data.table(
+                snlid + date ~ concept_id,
+                value.var = 'value'            
+            ) ->
+            data_wide_char
+
+        data_long_num %>>%
+            subset(
+            (drop == FALSE)    
+            ) %>>%
+            select(
+                concept_id,
+                snlid,
+                date = date_td,
+                value
+            ) %>>%
+            dcast.data.table(
+                snlid + date ~ concept_id,
+                value.var = 'value'            
+            ) ->
+            data_wide_num
+
+        attributes(data_long,'char') <- data_long_char
+        attributes(data_long,'num') <- data_long_num        
+        
+        data_wide_num %>>% setkey(snlid,date)
+        data_wide_char %>>% setkey(snlid,date)
+        data_wide_char[data_wide_num] ->
+            data_wide
+    } else {
+        data_long %>>%
+            subset(
+            (drop == FALSE)    
+            ) %>>%
+            select(
+                concept_id,
+                snlid,
+                date = date_td,
+                value
+            ) %>>%
+            dcast.data.table(
+                snlid + date ~ concept_id,
+                value.var = 'value'            
+            ) ->
+            data_wide
+    }  
 
     ## Lookup
     data_long %>>%
@@ -105,6 +155,7 @@ snl2r <- function(infile){
     )
 }
 
+
 ## infile = '/Users/jankocizel/Downloads/snl_template_out.xlsx'
 ## snl2r(infile) ->
 ##     out
@@ -116,3 +167,48 @@ snl2r <- function(infile){
 ##         month(date) == 12
 ##     )
 
+
+## infile = '/Users/jankocizel/Downloads/2016-03-13 Test 2.xlsx'
+
+#' @export
+snl2r.static <- function(infile){
+    read_excel(infile, sheet = "STATIC", col_names = FALSE ) %>>%
+        data.table ->
+        data
+
+    data %>>%
+        (dt~dt[1:2]) %>>% t %>>%
+        data.table %>>%
+        (dt~dt[-c(1:2)]) %>>%
+        mutate(V1 = V1 %>>% str_trim('both')) %>>%
+        (dt~do.call('paste', c(dt,list(sep = '|')))) ->
+        header
+
+    ## cbind(
+    ##     variable = data %>>% (dt~dt[1]) %>>% t %>>% (x~x[-c(1:2)]),
+    ##     header
+    ## ) %>>% data.table %>>%
+    ##     setkey(variable)->
+    ##     header
+
+    data %>>%
+        (dt~dt[-c(1:3)]) %>>%
+        select(-X1) %>>%
+        setnames(names(.),
+                 c('snlid',header)) %>>%
+        setkey(snlid) ->
+        out
+
+    out %>>%
+        mutate(
+            iso2 = `Country Code|130508`,
+            name = `Company Name, Abbreviated|131159`
+        )->
+        out2
+
+    out3 <- out2 %>>% select(snlid,iso2,name)
+
+    attr(out3,'info') <- out2
+    
+    return(out3)
+}
