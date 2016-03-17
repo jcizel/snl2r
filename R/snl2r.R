@@ -111,8 +111,8 @@ snl2r <- function(infile,
             ) ->
             data_wide_num
 
-        attributes(data_long,'char') <- data_long_char
-        attributes(data_long,'num') <- data_long_num        
+        attr(data_long,'char') <- data_long_char
+        attr(data_long,'num') <- data_long_num        
         
         data_wide_num %>>% setkey(snlid,date)
         data_wide_char %>>% setkey(snlid,date)
