@@ -12,7 +12,8 @@ Imports:
     dplyr,
     readxl,
     xlsx,
-    zoo
+    zoo,
+    stringr
 License: MIT + file LICENSE
 LazyData: true
 RoxygenNote: 5.0.1

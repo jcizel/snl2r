@@ -1,6 +1,6 @@
 
 #' @export
-snl_template_input <- function(outfile){
+snl_tmpl_create <- function(outfile){
     FILE.EXCEL <- system.file('./templates/snl_query_builder.xlsx',
                               package = 'snlutils')
     
@@ -28,16 +28,15 @@ snl_template_input <- function(outfile){
 ## outfile = '/Users/jankocizel/Downloads/snl_template_out.xlsx'
 
 #' @export
-snl_template_create <- function(infile,outfile){
-    ## command <- sprintf('cp "%s" "%s"',
-    ##                    infile,
-    ##                    outfile)
-    ## system(command)
-    file.copy(
-        infile,
-        outfile,
-        overwrite = TRUE
-    )
+snl_tmpl_process <- function(infile,outfile){
+
+    if (infile != outfile){
+        file.copy(
+            infile,
+            outfile,
+            overwrite = TRUE
+        )
+    }
 
     read_excel(infile, sheet = "SNLID") %>>%
         data.table %>>%
