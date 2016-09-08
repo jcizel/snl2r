@@ -182,7 +182,7 @@ snl2r <- function(infile,
 
 #' @export
 snl2r.static <- function(infile){
-    read_excel(infile, sheet = "STATIC", col_names = FALSE ) %>>%
+    read_excel(infile, sheet = "STATIC_DOWNLOAD", col_names = FALSE ) %>>%
         data.table ->
         data
 
@@ -202,7 +202,7 @@ snl2r.static <- function(infile){
     ##     header
 
     data %>>%
-        (dt~dt[-c(1:3)]) %>>%
+        (dt~dt[-c(1:2)]) %>>%
         select(-X1) %>>%
         setnames(names(.),
                  c('snlid',header)) %>>%
