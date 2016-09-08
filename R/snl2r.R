@@ -51,15 +51,25 @@ snl2r <- function(infile,
             quarter = substr(date,6,7) %>>% as.numeric
         ) %>>%
         (dt~dt[is.na(quarter), quarter := 4]) ->
-        out3
+      out3
 
-    out3[, date_yq := sprintf("%s-%s",year,quarter) %>>% as.yearqtr]
-    out3[, date_td := date_yq %>>% as.Date(frac = 1)]
+    out3 %>>%
+      select(date,year,quarter) %>>%
+      setkey(date) %>>%
+      unique %>>%
+      mutate(
+        date_yq = sprintf("%s-%s",year,quarter) %>>% as.yearqtr,
+        date_td = date_yq %>>% as.Date(frac = 1),
+        freq = ifelse(grepl(pattern = "Q", x = date),
+                      'Q','A')
+      ) %>>%
+      select(date,date_yq,date_td,freq) ->
+      date_lookup
+
+    (date_lookup %>>% setkey(date))[out3 %>>% setkey(date)] ->
+      out3
 
     ## Deal with duplicates
-    out3[grepl(pattern = "Q", x = date), freq := "Q"]
-    out3[grepl(pattern = "Y", x = date), freq := "A"]
-
     out3[, N:=.N, by = list(concept_id, snlid, date_td)]
     out3[, avail := freq %>>% paste(collapse = ";"), by = list(concept_id, snlid, date_td)]
 
@@ -72,10 +82,10 @@ snl2r <- function(infile,
 
     if (determine.type == TRUE){
         determineType(infile) -> t
-        data_long[concept_id %in% t[type=='string'][['concept_id']]] %>>%
+        data_long[concept_id %in% t[type=='Char'][['concept_id']]] %>>%
             mutate(value = value %>>% as.character) ->
             data_long_char
-        data_long[concept_id %in% t[type=='numeric'][['concept_id']]] %>>%
+        data_long[concept_id %in% t[type=='Num'][['concept_id']]] %>>%
             mutate(value = value %>>% as.numeric) ->
             data_long_num
 
