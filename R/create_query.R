@@ -3,15 +3,11 @@
 snl_tmpl_create <- function(outfile){
     FILE.EXCEL <- system.file('./templates/snl_query_builder.xlsx',
                               package = 'snlutils')
-    
-    ## command <- sprintf('cp "%s" "%s"',
-    ##                    FILE.EXCEL,
-    ##                    outfile)
 
     file.copy(FILE.EXCEL,
               outfile,
               overwrite = TRUE)
-    
+
     ## system(command)
     ## message(command)
     message("Done!")
@@ -28,7 +24,8 @@ snl_tmpl_create <- function(outfile){
 ## outfile = '/Users/jankocizel/Downloads/snl_template_out.xlsx'
 
 #' @export
-snl_tmpl_process <- function(infile,outfile){
+snl_tmpl_process <- function(infile,outfile,
+                             outshape = c('horizontal','vertical')){
 
     if (infile != outfile){
         file.copy(
@@ -46,7 +43,7 @@ snl_tmpl_process <- function(infile,outfile){
     read_excel(infile, sheet = "DATES") %>>%
         data.table %>>%
         select(Date) ->
-        dates 
+        dates
 
     read_excel(infile, sheet = "CONCEPTS") %>>%
         data.table ->
@@ -54,7 +51,7 @@ snl_tmpl_process <- function(infile,outfile){
 
     CJ(
         code = concepts %>>% (`Concept Code`),
-        date = dates %>>% (Date)                     
+        date = dates %>>% (Date)
     ) %>>%
         setkey(code) ->
         o
@@ -71,15 +68,29 @@ snl_tmpl_process <- function(infile,outfile){
     ## ) ->
     ##     sheet
 
-    cbind(
-        SNLID = c("Concept","Concept Code","Date","Additional Field"),
-        t(out) %>>% as.data.frame 
-    ) ->
-        sheet
-    
+    if (outshape == 'horizontal'){
+        cbind(
+            X1 = c("=SNLTable(1,,,)","","",""),
+            SNLID = c("Concept","Concept Code","Date","Additional Field"),
+            t(out) %>>% as.data.frame
+        ) ->
+            sheet
+    } else {
+        rbind(
+            X1 = c("=SNLTable(1,,,)","","",""),
+            SNLID = c("Concept","Concept Code","Date","Additional Field"),
+            (out) %>>% as.data.frame
+        ) ->
+            sheet
+    }
 
-    xlsx::write.xlsx(sheet, file = outfile, sheetName = 'template', append = TRUE)
-    
+    wb <- openxlsx::loadWorkbook(outfile)
+    try(removeWorksheet(wb,sheet = 'template'))
+    try(removeWorksheet(wb,sheet = '_snloffice'))
+    addWorksheet(wb,'template')
+    writeData(wb, sheet = 'template', sheet)
+    saveWorkbook(wb, file = outfile, overwrite = TRUE)
+
     return(NULL %>>% invisible)
 }
 

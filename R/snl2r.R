@@ -25,7 +25,7 @@ snl2r <- function(infile,
         setnames(names(.),
                  data %>>% (dt~dt[1]) %>>% t) %>>%
         (dt~dt[-c(1)]) %>>%
-        select(-SNLID) %>>% 
+        select(-SNLID) %>>%
         melt.data.table(id.vars = 'SNLTable') %>>%
         setkey(variable) %>>%
         (header[.]) %>>%
@@ -81,7 +81,7 @@ snl2r <- function(infile,
 
         data_long_char %>>%
             subset(
-            (drop == FALSE)    
+            (drop == FALSE)
             ) %>>%
             select(
                 concept_id,
@@ -91,13 +91,13 @@ snl2r <- function(infile,
             ) %>>%
             dcast.data.table(
                 snlid + date ~ concept_id,
-                value.var = 'value'            
+                value.var = 'value'
             ) ->
             data_wide_char
 
         data_long_num %>>%
             subset(
-            (drop == FALSE)    
+            (drop == FALSE)
             ) %>>%
             select(
                 concept_id,
@@ -107,13 +107,13 @@ snl2r <- function(infile,
             ) %>>%
             dcast.data.table(
                 snlid + date ~ concept_id,
-                value.var = 'value'            
+                value.var = 'value'
             ) ->
             data_wide_num
 
         attr(data_long,'char') <- data_long_char
-        attr(data_long,'num') <- data_long_num        
-        
+        attr(data_long,'num') <- data_long_num
+
         data_wide_num %>>% setkey(snlid,date)
         data_wide_char %>>% setkey(snlid,date)
         data_wide_char[data_wide_num] ->
@@ -121,7 +121,7 @@ snl2r <- function(infile,
     } else {
         data_long %>>%
             subset(
-            (drop == FALSE)    
+            (drop == FALSE)
             ) %>>%
             select(
                 concept_id,
@@ -131,10 +131,10 @@ snl2r <- function(infile,
             ) %>>%
             dcast.data.table(
                 snlid + date ~ concept_id,
-                value.var = 'value'            
+                value.var = 'value'
             ) ->
             data_wide
-    }  
+    }
 
     ## Lookup
     data_long %>>%
@@ -146,7 +146,7 @@ snl2r <- function(infile,
         lookup
 
     attr(data_wide,'lookup') <- lookup
-    
+
     return(
         list(
             long = data_long,
@@ -209,6 +209,6 @@ snl2r.static <- function(infile){
     out3 <- out2 %>>% select(snlid,iso2,name)
 
     attr(out3,'info') <- out2
-    
+
     return(out3)
 }
